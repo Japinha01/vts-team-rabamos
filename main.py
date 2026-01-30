@@ -11,7 +11,7 @@ from datetime import datetime
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 st.set_page_config(page_title="Team Rabamos // Intelligence", layout="wide", initial_sidebar_state="expanded")
 
-# --- ESTILO CSS PROFISSIONAL (PRESERVADO) ---
+# --- ESTILO CSS PROFISSIONAL ---
 st.markdown("""
     <style>
     [data-testid="stAppViewContainer"] { background-color: #0f1923; color: #ece8e1; }
@@ -51,59 +51,51 @@ AGENT_ROLES = {
 
 def analise_inteligente(row):
     obs = {"acerto": "", "ajuste": "", "foco": ""}
-    # Garantir valores mínimos para evitar erros de cálculo
     kdr = row['K'] / max(row['D'], 1)
     adr = row['ADR']
     hs = row['HS%']
     role = row['Role']
-    # O impacto já é calculado no dataframe principal
     impacto = row.get('Impacto', 1)
 
-    # --- SEÇÃO: IMPACTO POSITIVO (Análise Técnica Neutra) ---
     if hs > 28: 
-        obs["acerto"] = "Mecânica de Contato: Índice de conversão em headshots acima da média, reduzindo o TTK (Time to Kill) em duelos isolados."
+        obs["acerto"] = "Mecânica de Contato: Índice de conversão em headshots acima da média, reduzindo o TTK nos duelos."
     elif adr > 165: 
-        obs["acerto"] = "Volume de Fogo: Constância na aplicação de dano, gerando pressão territorial e drenando recursos de suporte adversários."
+        obs["acerto"] = "Volume de Fogo: Constância na aplicação de dano, gerando pressão territorial e drenando recursos adversários."
     elif kdr > 1.3: 
-        obs["acerto"] = "Letalidade e Sobrevivência: Alta eficiência em trocas diretas com manutenção de integridade para situações de trade-kill."
+        obs["acerto"] = "Letalidade e Sobrevivência: Alta eficiência em trocas diretas com manutenção de integridade tática."
     elif impacto > 1.2:
-        obs["acerto"] = "Participação Ativa: Presença constante em eventos críticos do round, resultando em impacto numérico direto para o squad."
+        obs["acerto"] = "Participação Ativa: Presença constante em eventos críticos do round, resultando em impacto numérico direto."
     else: 
-        obs["acerto"] = "Consistência de Base: Cumprimento dos protocolos padrão da role e manutenção de posicionamento tático preventivo."
+        obs["acerto"] = "Consistência de Base: Cumprimento dos protocolos padrão da role e manutenção de posicionamento tático."
 
-    # --- SEÇÃO: PONTOS DE MELHORIA (Crítica Construtiva) ---
     if kdr < 0.85: 
-        obs["ajuste"] = "Déficit de Troca: Necessário priorizar o 're-frag' e evitar exposição em ângulos sem cobertura de um segundo jogador."
+        obs["ajuste"] = "Déficit de Troca: Necessário priorizar o 're-frag' e evitar exposição sem cobertura de um segundo jogador."
     elif adr < 125 and role == 'Duelista': 
-        obs["ajuste"] = "Passividade Ofensiva: Baixa criação de espaço para o time. Necessário maior proatividade na abertura de bomb sites."
+        obs["ajuste"] = "Passividade Ofensiva: Baixa criação de espaço. Necessário maior proatividade na abertura de bomb sites."
     elif hs < 17: 
-        obs["ajuste"] = "Nível de Mira: Ajustar o 'crosshair placement' para a linha da cabeça em zonas de pre-fire comuns."
-    elif adr < 110:
-        obs["ajuste"] = "Presença de Combate: Necessário elevar o volume de dano por round para garantir assistência tática nas eliminações."
+        obs["ajuste"] = "Nível de Mira: Ajustar o 'crosshair placement' para a linha da cabeça em zonas de pre-fire."
     else: 
-        obs["ajuste"] = "Leitura de Mapa: Refinar o timing de rotação para evitar ser isolado ou pego em zonas de transição sem suporte."
+        obs["ajuste"] = "Leitura de Mapa: Refinar o timing de rotação para evitar ser isolado em zonas de transição."
 
-    # --- SEÇÃO: DIRETRIZ DE TREINAMENTO (Prático) ---
     treinos = {
-        'Duelista': "Rotas de entrada (pathing), gestão de recursos de escape e coordenação de dive com iniciadores.",
-        'Controlador': "Padrões de one-way, timing de renovação de smokes e posicionamento de 'post-plant' seguro.",
-        'Iniciador': "Combos de info + flash, estudo de lineups de recon e timing de entrada pós-utilitário.",
-        'Sentinela': "Otimização de setups de ancoragem, controle passivo de flanco e economia de recursos para retake."
+        'Duelista': "Rotas de entrada (pathing), gestão de escape e coordenação de dive.",
+        'Controlador': "Padrões de one-way, timing de smokes e posicionamento de 'post-plant'.",
+        'Iniciador': "Combos de info + flash, estudo de lineups e timing de entrada pós-utilitário.",
+        'Sentinela': "Otimização de setups de ancoragem, controle de flanco e recursos para retake."
     }
-    obs["foco"] = treinos.get(role, "Fundamentos de movimentação, controle de spray e disciplina de mira.")
-    
+    obs["foco"] = treinos.get(role, "Fundamentos de movimentação e disciplina de mira.")
     return obs
 
 if 'all_stats' not in st.session_state: st.session_state.all_stats = None
 
 st.sidebar.title("🎮 Team Rabamos")
-aba = st.sidebar.radio("Navegação:", ["📊 Performance do time", "📈 Estratégia e Tendências", "⚔️ HISTORICO DE PARTIDAS (Solo x Time)"])
+aba = st.sidebar.radio("Navegação:", ["📊 Performance do time", "📈 Estratégia e Tendências", "⚔️ HISTÓRICO"])
 
 if st.sidebar.button("🔄 Sincronizar Dados", use_container_width=True):
     all_data = []
     pb = st.progress(0); st_txt = st.empty()
     for i, p in enumerate(players):
-        st_txt.markdown(f"⏳ **Buscando dados de:** {p['name']}...")
+        st_txt.markdown(f"⏳ **Buscando:** {p['name']}...")
         retry = 0
         while retry < 2:
             try:
@@ -134,7 +126,7 @@ if st.sidebar.button("🔄 Sincronizar Dados", use_container_width=True):
             except: retry += 1; time.sleep(1)
         pb.progress((i + 1) / len(players))
     st.session_state.all_stats = pd.DataFrame(all_data)
-    st_txt.success("✅ Dados do Team Rabamos sincronizados!")
+    st_txt.success("✅ Dados sincronizados!")
     time.sleep(1); st_txt.empty(); pb.empty()
 
 if st.session_state.all_stats is not None:
@@ -148,18 +140,17 @@ if st.session_state.all_stats is not None:
         h1, h2, h3, h4 = st.columns(4)
         with h1:
             mvp_d = player_agg.loc[player_agg['ADR'].idxmax()]
-            st.markdown(f"<div class='highlight-card'><div class='hl-title'>CARREGADOR DE DANO</div><div class='hl-value'>{mvp_d['Nome']}</div><div class='hl-desc'>Média: {mvp_d['ADR']:.1f} ADR</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='highlight-card'><div class='hl-title'>VOLUME DE DANO</div><div class='hl-value'>{mvp_d['Nome']}</div><div class='hl-desc'>Média: {mvp_d['ADR']:.1f} ADR</div></div>", unsafe_allow_html=True)
         with h2:
             mvp_h = player_agg.loc[player_agg['HS%'].idxmax()]
-            st.markdown(f"<div class='highlight-card'><div class='hl-title'>PRECISÃO LETAL (HS%)</div><div class='hl-value'>{mvp_h['HS%']:.1f}%</div><div class='hl-desc'>Sniper: {mvp_h['Nome']}</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='highlight-card'><div class='hl-title'>PRECISÃO (HS%)</div><div class='hl-value'>{mvp_h['HS%']:.1f}%</div><div class='hl-desc'>{mvp_h['Nome']}</div></div>", unsafe_allow_html=True)
         with h3:
-            st.markdown(f"<div class='highlight-card'><div class='hl-title'>TAXA DE VITÓRIA</div><div class='hl-value'>{(df['Win'].mean()*100):.1f}%</div><div class='hl-desc'>Aproveitamento Geral</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='highlight-card'><div class='hl-title'>WIN RATE SQUAD</div><div class='hl-value'>{(df['Win'].mean()*100):.1f}%</div><div class='hl-desc'>Aproveitamento Geral</div></div>", unsafe_allow_html=True)
         with h4:
             mapa_f = df.groupby('Mapa')['Win'].mean().idxmax()
             st.markdown(f"<div class='highlight-card'><div class='hl-title'>MELHOR MAPA</div><div class='hl-value'>{mapa_f}</div><div class='hl-desc'>Domínio Estratégico</div></div>", unsafe_allow_html=True)
 
         st.write("---")
-        st.write("### 👥 ESTATÍSTICAS DO TIME")
         player_list = player_agg.sort_values("ADR", ascending=False).to_dict('records')
         for i in range(0, len(player_list), 4):
             cols = st.columns(4)
@@ -167,76 +158,39 @@ if st.session_state.all_stats is not None:
                 with cols[j]:
                     with st.container(border=True):
                         st.markdown(f"#### {p_data['Nome']}")
-                        rc = p_data['Role'].lower()
-                        st.markdown(f'<span class="role-badge {rc}">{p_data["Role"]}</span>', unsafe_allow_html=True)
-                        fig = go.Figure(go.Scatterpolar(r=[p_data['ADR']/200, p_data['K']/p_data['D'], p_data['HS%']/35, p_data['Impacto']], theta=['ADR', 'K/D', 'HS%', 'Econ'], fill='toself', line_color='#ff4655'))
-                        fig.update_layout(polar=dict(radialaxis=dict(visible=False), bgcolor="#1f2933"), showlegend=False, height=150, margin=dict(l=30,r=30,t=30,b=30), paper_bgcolor="rgba(0,0,0,0)")
+                        st.markdown(f'<span class="role-badge {p_data["Role"].lower()}">{p_data["Role"]}</span>', unsafe_allow_html=True)
+                        fig = go.Figure(go.Scatterpolar(r=[p_data['ADR']/200, p_data['K']/p_data['D'], p_data['HS%']/35, p_data['Impacto']], theta=['ADR', 'K/D', 'HS%', 'Impacto'], fill='toself', line_color='#ff4655'))
+                        fig.update_layout(polar=dict(radialaxis=dict(visible=False), bgcolor="#1f2933"), showlegend=False, height=140, margin=dict(l=20,r=20,t=20,b=20), paper_bgcolor="rgba(0,0,0,0)")
                         st.plotly_chart(fig, use_container_width=True)
                         notas = analise_inteligente(p_data)
-                        st.markdown(f"<div class='coach-box acerto'><b>✅ ACERTO:</b><br>{notas['acerto']}</div>", unsafe_allow_html=True)
-                        st.markdown(f"<div class='coach-box ajuste'><b>⚠️ AJUSTE:</b><br>{notas['ajuste']}</div>", unsafe_allow_html=True)
-                        st.markdown(f"<div class='coach-box foco'><b>📘 FOCO:</b><br>{notas['foco']}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='coach-box acerto'><b>✅ ACERTO:</b> {notas['acerto']}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='coach-box ajuste'><b>⚠️ AJUSTE:</b> {notas['ajuste']}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='coach-box foco'><b>📘 FOCO:</b> {notas['foco']}</div>", unsafe_allow_html=True)
 
     elif aba == "📈 Estratégia e Tendências":
         st.write("### 🧠 INTELIGÊNCIA ESTRATÉGICA")
-        
-        tab_pool, tab_trend, tab_sides = st.tabs(["🎮 Agent Pool", "📈 Tendências de Mira", "⚔️ Especialização de Lado"])
-        
-        with tab_pool:
-            st.write("#### Eficiência por Agente (Taxa de Vitória)")
+        t1, t2, t3 = st.tabs(["🎮 Agent Pool", "📈 Tendências", "⚔️ Lados"])
+        with t1:
             agent_data = df.groupby(['Nome', 'Agente'])['Win'].mean().reset_index()
             agent_data['Win %'] = agent_data['Win'] * 100
-            fig_pool = px.bar(agent_data, x="Agente", y="Win %", color="Nome", barmode="group", 
-                             template="plotly_dark", color_discrete_sequence=px.colors.qualitative.Prism)
-            st.plotly_chart(fig_pool, use_container_width=True)
-
-        with tab_trend:
-            st.write("#### Evolução de Precisão (HS%) - Últimas Partidas")
-            fig_trend = px.line(df.sort_values("Data"), x="Data", y="HS%", color="Nome", markers=True, template="plotly_dark")
-            st.plotly_chart(fig_trend, use_container_width=True)
-            
-            st.write("#### Índice de Impacto x ADR")
-            fig_econ = px.scatter(player_agg, x="Econ", y="ADR", size="Impacto", color="Nome", text="Nome", 
-                                 template="plotly_dark", title="Relação Custo-Benefício de Dano")
-            st.plotly_chart(fig_econ, use_container_width=True)
-
-        with tab_sides:
-            st.write("#### ⚔️ Matriz de Especialização Tática")
-            st.info("Esta análise correlaciona métricas ofensivas (ADR/Impacto) e defensivas (Econ/HS%) para definir funções ideais.")
-            
+            st.plotly_chart(px.bar(agent_data, x="Agente", y="Win %", color="Nome", barmode="group", template="plotly_dark", color_discrete_sequence=px.colors.qualitative.Prism), use_container_width=True)
+        with t2:
+            st.plotly_chart(px.line(df.sort_values("Data"), x="Data", y="HS%", color="Nome", markers=True, template="plotly_dark", title="Evolução de Mira"), use_container_width=True)
+        with t3:
             c1, c2 = st.columns(2)
-            
             with c1:
                 st.markdown("<h4 style='color: #ff4655;'>🔴 PERFIL OFENSIVO (ATAQUE)</h4>", unsafe_allow_html=True)
-                # No ataque, valorizamos ADR alto e Impacto (quem abre espaço e limpa rounds)
-                ataque_df = player_agg[['Nome', 'ADR', 'Impacto']].sort_values('Impacto', ascending=False)
-                ataque_df.columns = ['Jogador', 'Volume de Dano (ADR)', 'Índice de Entrada']
-                st.dataframe(ataque_df.style.background_gradient(cmap="Reds"), use_container_width=True, hide_index=True)
-                st.caption("Foco: Jogadores com maior capacidade de quebra de setup e abertura de bomb.")
-
+                st.dataframe(player_agg[['Nome', 'ADR', 'Impacto']].sort_values('Impacto', ascending=False).style.background_gradient(cmap="Reds"), use_container_width=True, hide_index=True)
             with c2:
                 st.markdown("<h4 style='color: #45b3e3;'>🔵 PERFIL DEFENSIVO (DEFESA)</h4>", unsafe_allow_html=True)
-                # Na defesa, valorizamos Econ Rating (fazer muito com pouco) e HS% (segurar o avanço com precisão)
-                defesa_df = player_agg[['Nome', 'Econ', 'HS%']].sort_values('HS%', ascending=False)
-                defesa_df.columns = ['Jogador', 'Eficiência Econômica', 'Precisão de Retake (HS%)']
-                st.dataframe(defesa_df.style.background_gradient(cmap="Blues"), use_container_width=True, hide_index=True)
-                st.caption("Foco: Jogadores com maior disciplina de posicionamento e eficiência em contenção.")
+                st.dataframe(player_agg[['Nome', 'Econ', 'HS%']].sort_values('HS%', ascending=False).style.background_gradient(cmap="Blues"), use_container_width=True, hide_index=True)
 
-            st.divider()
-            st.write("#### 🗺️ Consistência Coletiva por Mapa")
-            mapa_stats = df.groupby('Mapa').agg({'Win': 'mean', 'ADR': 'mean'}).reset_index()
-            mapa_stats['Win %'] = mapa_stats['Win'] * 100
-            fig_mapa = px.scatter(mapa_stats, x="ADR", y="Win %", size="Win %", color="Mapa", 
-                                 text="Mapa", template="plotly_dark", title="Onde o Team Rabamos é mais letal?")
-            st.plotly_chart(fig_mapa, use_container_width=True)
-            
-    elif aba == "⚔️ HISTORICO DE PARTIDAS (Solo x Time)":
-        st.write("### 📜 HISTÓRICO DE PARTIDAS")
+    elif aba == "⚔️ HISTÓRICO":
+        st.write("### 📜 HISTÓRICO (Horário de Brasília)")
         matches = df.groupby(['MatchID', 'Data', 'Mapa', 'Placar', 'Win']).apply(lambda x: x.to_dict('records')).reset_index().sort_values('Data', ascending=False)
         for _, m in matches.iterrows():
+            # AJUSTE DE FUSO HORÁRIO (-3h)
+            data_br = m['Data'] - pd.Timedelta(hours=3)
             cor = "🟢 VITÓRIA" if m['Win'] else "🔴 DERROTA"
-            with st.expander(f"{cor} | {m['Mapa']} | {m['Placar']} | {m['Data'].strftime('%d/%m %H:%M')}"):
+            with st.expander(f"{cor} | {m['Mapa']} | {m['Placar']} | {data_br.strftime('%d/%m %H:%M')}"):
                 st.table(pd.DataFrame(m[0])[['Nome', 'Agente', 'K', 'D', 'A', 'ADR', 'HS%']].sort_values('ADR', ascending=False))
-
-else:
-    st.info("💡 Clique em 'Sincronizar Dados' para carregar as estatísticas do Team Rabamos.")
