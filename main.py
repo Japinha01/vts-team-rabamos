@@ -42,6 +42,17 @@ players = [
     {"name": "PankaOficial", "tag": "brr"},
 ]
 
+# MAPA DE CORES FIXO PARA CONTRASTE
+COLOR_MAP = {
+    "Carrasco": "#FF0000",      # Vermelho solicitado
+    "LCK": "#FF69B4",           # Rosa solicitado
+    "Japinhaa": "#00FF00",      # Verde Limão
+    "LDS Gabriela용": "#00FFFF", # Ciano
+    "VoidinN": "#FFFF00",       # Amarelo
+    "Bovis": "#FF8C00",         # Laranja
+    "PankaOficial": "#FFFFFF"    # Branco
+}
+
 AGENT_ROLES = {
     'Jett': 'Duelista', 'Raze': 'Duelista', 'Phoenix': 'Duelista', 'Reyna': 'Duelista', 'Yoru': 'Duelista', 'Neon': 'Duelista', 'Iso': 'Duelista', 'Waylay': 'Duelista',
     'Omen': 'Controlador', 'Viper': 'Controlador', 'Brimstone': 'Controlador', 'Astra': 'Controlador', 'Harbor': 'Controlador', 'Clove': 'Controlador',
@@ -159,7 +170,7 @@ if st.session_state.all_stats is not None:
                     with st.container(border=True):
                         st.markdown(f"#### {p_data['Nome']}")
                         st.markdown(f'<span class="role-badge {p_data["Role"].lower()}">{p_data["Role"]}</span>', unsafe_allow_html=True)
-                        fig = go.Figure(go.Scatterpolar(r=[p_data['ADR']/200, p_data['K']/p_data['D'], p_data['HS%']/35, p_data['Impacto']], theta=['ADR', 'K/D', 'HS%', 'Impacto'], fill='toself', line_color='#ff4655'))
+                        fig = go.Figure(go.Scatterpolar(r=[p_data['ADR']/200, p_data['K']/p_data['D'], p_data['HS%']/35, p_data['Impacto']], theta=['ADR', 'K/D', 'HS%', 'Impacto'], fill='toself', line_color=COLOR_MAP.get(p_data['Nome'], '#ff4655')))
                         fig.update_layout(polar=dict(radialaxis=dict(visible=False), bgcolor="#1f2933"), showlegend=False, height=140, margin=dict(l=20,r=20,t=20,b=20), paper_bgcolor="rgba(0,0,0,0)")
                         st.plotly_chart(fig, use_container_width=True)
                         notas = analise_inteligente(p_data)
@@ -173,9 +184,9 @@ if st.session_state.all_stats is not None:
         with t1:
             agent_data = df.groupby(['Nome', 'Agente'])['Win'].mean().reset_index()
             agent_data['Win %'] = agent_data['Win'] * 100
-            st.plotly_chart(px.bar(agent_data, x="Agente", y="Win %", color="Nome", barmode="group", template="plotly_dark", color_discrete_sequence=px.colors.qualitative.Prism), use_container_width=True)
+            st.plotly_chart(px.bar(agent_data, x="Agente", y="Win %", color="Nome", barmode="group", template="plotly_dark", color_discrete_map=COLOR_MAP), use_container_width=True)
         with t2:
-            st.plotly_chart(px.line(df.sort_values("Data"), x="Data", y="HS%", color="Nome", markers=True, template="plotly_dark", title="Evolução de Mira"), use_container_width=True)
+            st.plotly_chart(px.line(df.sort_values("Data"), x="Data", y="HS%", color="Nome", markers=True, template="plotly_dark", title="Evolução de Mira", color_discrete_map=COLOR_MAP), use_container_width=True)
         with t3:
             c1, c2 = st.columns(2)
             with c1:
@@ -189,7 +200,6 @@ if st.session_state.all_stats is not None:
         st.write("### 📜 HISTÓRICO (Horário de Brasília)")
         matches = df.groupby(['MatchID', 'Data', 'Mapa', 'Placar', 'Win']).apply(lambda x: x.to_dict('records')).reset_index().sort_values('Data', ascending=False)
         for _, m in matches.iterrows():
-            # AJUSTE DE FUSO HORÁRIO (-3h)
             data_br = m['Data'] - pd.Timedelta(hours=3)
             cor = "🟢 VITÓRIA" if m['Win'] else "🔴 DERROTA"
             with st.expander(f"{cor} | {m['Mapa']} | {m['Placar']} | {data_br.strftime('%d/%m %H:%M')}"):
